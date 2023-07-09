@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import NextAuth, { AuthOptions } from "next-auth";
+import NextAuth, { AuthOptions, DefaultSession } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
@@ -75,6 +75,23 @@ export const authOptions: AuthOptions = {
 
       return false;
     },
+    jwt: async ({ token, user }) => {
+      user && (token.user = user);
+
+      if (user) {
+        token.user = {
+          ...user,
+          hashedPassword: undefined,
+        };
+      }
+
+      return token;
+    },
+    session: async ({ session, token }) => {
+      session.user = token.user as DefaultSession["user"];
+
+      return session;
+    },
   },
   pages: {
     signIn: "/",
@@ -83,6 +100,7 @@ export const authOptions: AuthOptions = {
   // debug: process.env.NODE_ENV === "development",
   session: {
     strategy: "jwt",
+    maxAge: 24 * 60 * 60,
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
