@@ -84,13 +84,18 @@ export default function Home() {
             )}
             {data && (
               <button
-                onClick={() => {
-                  setSignOutLoading(true);
-                  new Promise((resolve) => setTimeout(resolve, 500)).then(() => {
-                    signOut({ redirect: false });
-                    toast.success("See you again!");
+                onClick={async () => {
+                  try {
+                    setSignOutLoading(true);
+                    await new Promise((resolve) => setTimeout(resolve, 500)).then(() => {
+                      signOut({ redirect: false });
+                      toast.success("See you again!");
+                    });
+                  } catch (err) {
+                    toast.error("Something went wrong.");
+                  } finally {
                     setSignOutLoading(false);
-                  });
+                  }
                 }}
                 disabled={signOutLoading}
                 className="mt-4 p-2 w-full bg-red-500 text-white rounded-md shadow group relative disabled:opacity-50 disabled:text-transparent"
