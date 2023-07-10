@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import NextAuth, { AuthOptions, DefaultSession } from "next-auth";
+import NextAuth, { AuthOptions, DefaultSession, User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
@@ -75,20 +75,42 @@ export const authOptions: AuthOptions = {
 
       return false;
     },
-    jwt: async ({ token, user }) => {
-      user && (token.user = user);
+    jwt: async ({ token, trigger, session, user }) => {
+      const tokenUser = token.user;
+      if (trigger === "update" && session?.user?.balance) {
+        const currentBalance = tokenUser.balance + session.user.balance;
+        await prisma.user.update({
+          where: {
+            email: tokenUser.email as string,
+          },
+          data: {
+            balance: currentBalance,
+          },
+        });
 
-      if (user) {
-        token.user = {
-          ...user,
-          hashedPassword: undefined,
-        };
+        if (token.user) {
+          token.user = {
+            ...tokenUser,
+            balance: currentBalance,
+          };
+        }
+
+        return token;
+      } else {
+        user && (token.user = user);
+
+        if (user) {
+          token.user = {
+            ...user,
+            hashedPassword: undefined,
+          };
+        }
+
+        return token;
       }
-
-      return token;
     },
     session: async ({ session, token }) => {
-      session.user = token.user as DefaultSession["user"];
+      session.user = token.user as User & { balance: number };
 
       return session;
     },
@@ -103,6 +125,9 @@ export const authOptions: AuthOptions = {
     maxAge: 24 * 60 * 60,
   },
   secret: process.env.NEXTAUTH_SECRET,
+  jwt: {
+    maxAge: 24 * 60 * 60,
+  },
 };
 
 export default NextAuth(authOptions);

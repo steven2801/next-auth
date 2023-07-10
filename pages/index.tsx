@@ -6,6 +6,9 @@ import Head from "next/head";
 import { useSearchParams } from "next/navigation";
 import { LucideLoader2 } from "lucide-react";
 import { useRouter } from "next/router";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "./api/auth/[...nextauth]";
+import { GetServerSidePropsContext } from "next";
 
 const popupCenter = (url: string, title: string) => {
   const dualScreenLeft = window.screenLeft ?? window.screenX;
@@ -33,7 +36,7 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const { data, status } = useSession();
+  const { data, update } = useSession();
 
   const searchParams = useSearchParams();
 
@@ -64,10 +67,6 @@ export default function Home() {
   const [githubLoading, setGithubLoading] = useState(false);
   const [signOutLoading, setSignOutLoading] = useState(false);
 
-  if (status === "loading") {
-    return <div></div>;
-  }
-
   return (
     <>
       <Head>
@@ -77,6 +76,18 @@ export default function Home() {
         <div className="grid place-items-center h-screen">
           <div className="p-4 w-80 mx-auto">
             <h1 className="text-center font-bold text-xl">Next Auth Demo - Login</h1>
+            <p>{data?.user.balance}</p>
+            <button
+              onClick={async () => {
+                await update({
+                  user: {
+                    balance: 20000,
+                  },
+                });
+              }}
+            >
+              add balance
+            </button>
             {data && (
               <div className="mt-4 border rounded-md shadow px-2 py-8">
                 <p className="text-center">{data?.user?.email}</p>
@@ -198,4 +209,14 @@ export default function Home() {
       </div>
     </>
   );
+}
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const session = await getServerSession(context.req, context.res, authOptions);
+
+  return {
+    props: {
+      session,
+    },
+  };
 }
