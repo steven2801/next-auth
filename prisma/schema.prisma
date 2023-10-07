@@ -21,8 +21,15 @@ model Account {
   scope                    String?
   id_token                 String? @db.Text
   session_state            String?
+  duplicated_template_id   String?
+  workspace_icon           String?
+  workspace_id             String?
+  workspace_name           String?
+  bot_id                   String?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  owner   Owner?  @relation(fields: [ownerId], references: [id])
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ownerId String? @unique
 
   @@unique([provider, providerAccountId])
 }
@@ -32,21 +39,48 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
+  owner        Owner    @relation(fields: [ownerId], references: [id])
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ownerId      String
+}
+
+model Owner {
+  id      String    @id @default(cuid())
+  type    String
+  session Session[]
+
+  user    User?
+  Account Account?
+}
+
+model Person {
+  id    String  @id @default(cuid())
+  email String?
+  user  User?
 }
 
 model User {
-  id             String        @id @default(cuid())
+  id             String    @id @default(cuid())
   name           String?
-  email          String?       @unique
+  email          String?   @unique
   emailVerified  DateTime?
   image          String?
+  avatar_url     String?
+  type           String?
   hashedPassword String?
-  balance        Int           @default(0)
-  createdAt      DateTime      @default(now())
-  accounts       Account[]
-  sessions       Session[]
-  transactions   Transaction[]
+  personEmail    String?
+
+  balance      Int           @default(0)
+  createdAt    DateTime      @default(now())
+  accounts     Account[]
+  sessions     Session[]
+  transactions Transaction[]
+
+  person   Person? @relation(fields: [personId], references: [id])
+  personId String? @unique
+
+  owner   Owner?  @relation(fields: [ownerId], references: [id])
+  ownerId String? @unique
 }
 
 model VerificationToken {

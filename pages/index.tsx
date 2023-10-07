@@ -65,6 +65,7 @@ export default function Home() {
   const [credentialsLoading, setCredentialsLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [githubLoading, setGithubLoading] = useState(false);
+  const [notionLoading, setNotionLoading] = useState(false);
   const [signOutLoading, setSignOutLoading] = useState(false);
 
   return (
@@ -175,6 +176,19 @@ export default function Home() {
                   </Link>
                 </form>
                 <div className="pt-4 flex flex-col gap-2">
+                  <button
+                    onClick={() => {
+                      setNotionLoading(true);
+                      signIn("notion", { callbackUrl: "/?success=true" });
+                    }}
+                    disabled={notionLoading}
+                    className="relative group p-2 overflow-hidden w-full bg-zinc-600 text-white rounded-md shadow disabled:text-transparent disabled:opacity-50"
+                  >
+                    <div className="absolute inset-0 text-white opacity-0 animate-spin grid place-items-center group-disabled:opacity-100">
+                      <LucideLoader2 className="w-4 h-4" strokeWidth={2} />
+                    </div>
+                    Notion
+                  </button>
                   <button
                     onClick={() => {
                       setGoogleLoading(true);

@@ -1,35 +1,34 @@
 import axios from "axios";
-import { GetServerSidePropsContext } from "next";
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import React from "react";
 import { LucideLoader2 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/router";
+import prisma from "@/lib/prisma";
 
 export async function getServerSideProps(ctx: GetServerSidePropsContext) {
-  const { data } = await axios.get(`http://localhost:3000/api/movies`);
+  const data = await prisma.movie.findMany();
+
+  const movies = data.find((movie) => movie.id === Number(ctx.params?.id));
+
+  if (!movies) {
+    return {
+      notFound: true,
+    };
+  }
 
   return {
     props: {
-      data: data.movies.find((movie: any) => movie.id === Number(ctx.params?.id)),
+      data: movies,
     },
   };
 }
 
-type SeatEnum = 0 | 1;
-
-type Movie = {
-  id: number;
-  title: string;
-  ageRating: number;
-  ticketPrice: number;
-  seats: SeatEnum[];
-};
-
-export default function Movie({ data }: { data: Movie }) {
+export default function Movie({ data }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const [num, setNum] = React.useState(1);
   const [isLoading, setIsLoading] = React.useState(false);
 
-  const [seats, setSeats] = React.useState<SeatEnum[]>(data.seats);
+  const [seats, setSeats] = React.useState(data.seats);
 
   const selectedSeatsFromApi = data.seats.filter((seat) => seat === 1).length;
   const selectedUserSeats = seats.filter((seat) => seat === 1).length;

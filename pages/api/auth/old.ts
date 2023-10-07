@@ -3,7 +3,6 @@ import NextAuth, { AuthOptions, User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
-import NotionProvider from "@auth/core/providers/notion";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 
 import prisma from "@/lib/prisma";
@@ -11,11 +10,6 @@ import prisma from "@/lib/prisma";
 export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
-    NotionProvider({
-      clientId: process.env.NOTION_ID as string,
-      clientSecret: process.env.NOTION_SECRET as string,
-      redirectUri: process.env.NOTION_REDIRECT_URI as string,
-    }),
     GithubProvider({
       clientId: process.env.GITHUB_ID as string,
       clientSecret: process.env.GITHUB_SECRET as string,
